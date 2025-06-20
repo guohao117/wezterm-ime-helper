@@ -10,8 +10,8 @@ local DEFAULT_IME_MAPPING = {
     IME = "com.apple.inputmethod.SCIM.ITABC"
   },
   Windows = {
-    EN = "0x0409", -- English US
-    IME = "0x0804"  -- Chinese Simplified
+    EN = "1033", -- English US (0x0409)
+    IME = "2052"  -- Chinese Simplified (0x0804)
   },
   Linux = {
     EN = "xkb:us::eng",
@@ -33,6 +33,13 @@ function M.switch_input_method(state, user_mapping)
   if not ime_id then
     wezterm.log_error(string.format("[IME Switcher] No mapping for state %s on %s", state, os_name))
     return false
+  end
+
+  -- 检查当前状态，如果已经是期望的状态则跳过切换
+  local current_state = M.get_current_ime_state()
+  if current_state == state then
+    wezterm.log_info(string.format("[IME Switcher] Already in %s state, skipping switch", state))
+    return true
   end
 
   if os_name == "macOS" then
@@ -78,6 +85,41 @@ function M.get_current_ime_state()
         return "EN"
       else
         return "IME"
+      end
+    end
+  elseif os_name == "Windows" then
+    local success, stdout, stderr = wezterm.run_child_process({"cmd", "/c", "im-select.exe"})
+    if success and stdout then
+      local current_ime = stdout:gsub("%s+", "")
+      local current_ime_num = tonumber(current_ime)
+      -- 检查是否为英文输入法 (1033 = English US)
+      -- 可以扩展支持更多英文输入法: 1033, 2057 (English UK), 3081 (English AU), etc.
+      if current_ime_num == 1033 or current_ime_num == 2057 or current_ime_num == 3081 then
+        return "EN"
+      else
+        return "IME"
+      end
+    end
+  elseif os_name == "Linux" then
+    -- 首先尝试 IBus
+    local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", "ibus engine"})
+    if success and stdout then
+      local current_ime = stdout:gsub("%s+", "")
+      if current_ime:find("xkb:us") or current_ime:find("eng") then
+        return "EN"
+      else
+        return "IME"
+      end
+    else
+      -- 如果 IBus 失败，尝试 Fcitx
+      success, stdout, stderr = wezterm.run_child_process({"sh", "-c", "fcitx-remote -n"})
+      if success and stdout then
+        local current_ime = stdout:gsub("%s+", "")
+        if current_ime:find("xkb:us") or current_ime:find("eng") or current_ime == "keyboard-us" then
+          return "EN"
+        else
+          return "IME"
+        end
       end
     end
   end

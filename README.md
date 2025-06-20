@@ -48,14 +48,14 @@ return config
 
 ### Via OSC Sequences (Recommended for Neovim integration)
 
-The plugin listens for WezTerm user variables that can be set via OSC sequences:
+The plugin listens for WezTerm user variables that can be set via OSC sequences. Note that the variable values must be base64 encoded:
 
 ```bash
-# Switch to English
-printf '\033]1337;SetUserVar=IME_CONTROL=EN\007'
+# Switch to English (EN -> RU4=)
+printf '\033]1337;SetUserVar=IME_CONTROL=RU4=\007'
 
-# Switch to IME  
-printf '\033]1337;SetUserVar=IME_CONTROL=IME\007'
+# Switch to IME (IME -> SU1F)  
+printf '\033]1337;SetUserVar=IME_CONTROL=SU1F\007'
 ```
 
 ### Via Command Palette
@@ -81,7 +81,7 @@ Create a Neovim plugin or add to your configuration:
 -- Switch to English when leaving insert mode
 vim.api.nvim_create_autocmd("InsertLeave", {
   callback = function()
-    io.write('\027]1337;SetUserVar=IME_CONTROL=EN\007')
+    io.write('\027]1337;SetUserVar=IME_CONTROL=RU4=\007')  -- "EN" base64 encoded
     io.flush()
   end
 })
@@ -90,7 +90,7 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 vim.api.nvim_create_autocmd("InsertEnter", {
   pattern = {"*.md", "*.txt", "*.tex"},
   callback = function()
-    io.write('\027]1337;SetUserVar=IME_CONTROL=IME\007')
+    io.write('\027]1337;SetUserVar=IME_CONTROL=SU1F\007')  -- "IME" base64 encoded
     io.flush()
   end
 })
@@ -196,9 +196,17 @@ Common examples:
 
 ### Check if IME switching works
 Test manually with:
+
+**Bash/Zsh:**
 ```bash
-printf '\033]1337;SetUserVar=IME_CONTROL=EN\007'
-printf '\033]1337;SetUserVar=IME_CONTROL=IME\007'
+printf '\033]1337;SetUserVar=IME_CONTROL=RU4=\007'  # Switch to EN
+printf '\033]1337;SetUserVar=IME_CONTROL=SU1F\007'  # Switch to IME
+```
+
+**PowerShell:**
+```powershell
+Write-Host "`e]1337;SetUserVar=IME_CONTROL=RU4=`a" -NoNewline  # Switch to EN
+Write-Host "`e]1337;SetUserVar=IME_CONTROL=SU1F`a" -NoNewline  # Switch to IME
 ```
 
 ### Enable debug logging
