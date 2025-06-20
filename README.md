@@ -182,7 +182,10 @@ Common examples:
 - Install `macism`: `brew install macism`
 
 ### Windows
-- PowerShell (included in Windows 10/11)
+- Install `im-select`: Download from [daipeihust/im-select](https://github.com/daipeihust/im-select)
+  - **Option 1 - Manual**: Download the latest release from the GitHub releases page, extract `im-select.exe` and add it to your PATH (recommended)
+  - **Option 2 - Scoop**: Try `scoop install im-select` (may need to add additional buckets or may not be available)
+  - **Option 3 - Build from source**: Clone the repository and build yourself
 
 ### Linux
 - IBus or Fcitx input method framework

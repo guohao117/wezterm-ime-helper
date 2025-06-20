@@ -43,7 +43,7 @@ function M.switch_input_method(state, user_mapping)
       return false
     end
   elseif os_name == "Windows" then
-    local cmd = string.format('powershell -Command "Set-WinUserLanguageList -LanguageList %s -Force"', ime_id)
+    local cmd = string.format('im-select.exe %s', ime_id)
     local success, stdout, stderr = wezterm.run_child_process({"cmd", "/c", cmd})
     if not success then
       wezterm.log_error(string.format("[IME Switcher] Windows switch failed: %s", stderr))
