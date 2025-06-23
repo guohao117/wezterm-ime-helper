@@ -92,7 +92,7 @@ function M.setup(opts)
     end)
   end
 
-  return config
+  wezterm.log_info("[WezTerm IME Helper] Plugin setup completed")
 end
 
 -- 导出 IME 切换函数供用户直接调用

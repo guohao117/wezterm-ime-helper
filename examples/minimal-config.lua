@@ -4,7 +4,7 @@ local ime_helper = wezterm.plugin.require('https://github.com/guohaodev/wezterm-
 
 local config = wezterm.config_builder()
 
--- Setup IME helper with minimal configuration
+-- Setup IME helper with minimal configuration (no return value)
 ime_helper.setup({
   enable_command_palette = false, -- 禁用命令面板集成
   ime_mapping = {

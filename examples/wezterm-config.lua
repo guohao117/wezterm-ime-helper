@@ -4,7 +4,7 @@ local ime_helper = wezterm.plugin.require('https://github.com/guohaodev/wezterm-
 
 local config = wezterm.config_builder()
 
--- Setup IME helper
+-- Setup IME helper (no return value)
 ime_helper.setup({
   auto_switch = true,
   log_level = "info",
