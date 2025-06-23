@@ -29,6 +29,7 @@ function M.setup(opts)
     auto_switch = opts.auto_switch or true,
     log_level = opts.log_level or "info",
     ime_mapping = opts.ime_mapping or {},
+    enable_command_palette = opts.enable_command_palette ~= false, -- 默认启用
   }
 
   wezterm.log_info("[WezTerm IME Helper] Plugin setup called")
@@ -67,6 +68,29 @@ function M.setup(opts)
     window:toast_notification('WezTerm IME Helper', string.format('Toggled to %s input method', new_state), nil, 1000)
     wezterm.log_info(string.format("[IME Helper] Toggled from %s to %s", current_state or "unknown", new_state))
   end)
+
+  -- 注册命令面板增强（如果启用）
+  if config.enable_command_palette then
+    wezterm.on('augment-command-palette', function(window, pane)
+      return {
+        {
+          brief = 'Switch to English IME',
+          icon = 'md_keyboard',
+          action = wezterm.action.EmitEvent('ime-helper-switch-to-en'),
+        },
+        {
+          brief = 'Switch to IME',
+          icon = 'md_translate',
+          action = wezterm.action.EmitEvent('ime-helper-switch-to-ime'),
+        },
+        {
+          brief = 'Toggle IME',
+          icon = 'md_swap_horiz',
+          action = wezterm.action.EmitEvent('ime-helper-toggle'),
+        },
+      }
+    end)
+  end
 
   return config
 end

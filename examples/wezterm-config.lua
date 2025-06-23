@@ -8,6 +8,7 @@ local config = wezterm.config_builder()
 ime_helper.setup({
   auto_switch = true,
   log_level = "info",
+  enable_command_palette = true, -- 启用命令面板集成（默认）
   ime_mapping = {
     macOS = {
       EN = "com.apple.keylayout.ABC",
