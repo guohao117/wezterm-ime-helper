@@ -58,11 +58,54 @@ For automatic IME switching in Neovim, install the companion plugin:
   "guohao117/noime.nvim",
   event = "VeryLazy",
   cond = function()
-    return vim.env.WEZTERM_PANE ~= nil
+    return vim.env.WEZTERM_PANE ~= nil or (vim.env.TERM and vim.env.TERM:match("wezterm"))
   end,
-  config = function()
-    require("ime-helper").setup()
+  opts = {
+    debug = false,
+    auto_switch = true,
+  },
+  config = function(_, opts)
+    require("ime-helper").setup(opts)
   end,
+  keys = {
+    {
+      "<leader>uie",
+      function()
+        require("ime-helper").switch_to_en()
+      end,
+      desc = "IME: Switch to English",
+    },
+    {
+      "<leader>uii",
+      function()
+        require("ime-helper").switch_to_ime()
+      end,
+      desc = "IME: Switch to IME",
+    },
+    {
+      "<leader>uis",
+      function()
+        require("ime-helper").status()
+      end,
+      desc = "IME: Show Status",
+    },
+  },
+}
+```
+
+For **LazyVim users**, create a file at `~/.config/nvim/lua/plugins/wezterm-ime-helper.lua`:
+```lua
+return {
+  {
+    "guohao117/noime.nvim",
+    event = "VeryLazy",
+    cond = function()
+      return vim.env.WEZTERM_PANE ~= nil or (vim.env.TERM and vim.env.TERM:match("wezterm"))
+    end,
+    config = function()
+      require("ime-helper").setup()
+    end,
+  },
 }
 ```
 
