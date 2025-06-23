@@ -14,7 +14,6 @@ package.path = package.path
   .. '?.lua'
 
 local ime_switcher = require('ime_switcher')
-local osc_handler = require('osc_handler')
 
 local M = {}
 
@@ -34,23 +33,61 @@ function M.setup(opts)
 
   wezterm.log_info("[WezTerm IME Helper] Plugin setup called")
 
-  -- 注册用户变量变化事件
+  -- 注册用户变量变化事件（用于远程/Neovim集成）
   wezterm.on('user-var-changed', function(window, pane, name, value)
     if name == 'wezterm_ime_control' or name == 'IME_CONTROL' then
       local state = (value or ""):upper()
-      if state == IME_STATE.EN or state == IME_STATE.IME then
-        ime_switcher.switch_input_method(state, config.ime_mapping)
-        wezterm.log_info(string.format("[IME Helper] Switched input method to %s", state))
+      if state == IME_STATE.EN then
+        wezterm.emit('ime-helper-switch-to-en', window, pane)
+      elseif state == IME_STATE.IME then
+        wezterm.emit('ime-helper-switch-to-ime', window, pane)
       else
         wezterm.log_error(string.format("[IME Helper] Invalid user variable value: %s", value))
       end
     end
   end)
 
-  -- 注册OSC序列处理
-  osc_handler.setup(config)
+  -- 注册命令面板命令
+  wezterm.on('ime-helper-switch-to-en', function(window, pane)
+    ime_switcher.switch_input_method(IME_STATE.EN, config.ime_mapping)
+    window:toast_notification('WezTerm IME Helper', 'Switched to English input method', nil, 1000)
+    wezterm.log_info("[IME Helper] Switched to English input method")
+  end)
+
+  wezterm.on('ime-helper-switch-to-ime', function(window, pane)
+    ime_switcher.switch_input_method(IME_STATE.IME, config.ime_mapping)
+    window:toast_notification('WezTerm IME Helper', 'Switched to IME input method', nil, 1000)
+    wezterm.log_info("[IME Helper] Switched to IME input method")
+  end)
+
+  wezterm.on('ime-helper-toggle', function(window, pane)
+    local current_state = ime_switcher.get_current_ime_state()
+    local new_state = (current_state == IME_STATE.EN) and IME_STATE.IME or IME_STATE.EN
+    ime_switcher.switch_input_method(new_state, config.ime_mapping)
+    window:toast_notification('WezTerm IME Helper', string.format('Toggled to %s input method', new_state), nil, 1000)
+    wezterm.log_info(string.format("[IME Helper] Toggled from %s to %s", current_state or "unknown", new_state))
+  end)
 
   return config
+end
+
+-- 导出 IME 切换函数供用户直接调用
+function M.switch_to_en()
+  return {
+    EmitEvent = 'ime-helper-switch-to-en'
+  }
+end
+
+function M.switch_to_ime()
+  return {
+    EmitEvent = 'ime-helper-switch-to-ime'
+  }
+end
+
+function M.toggle()
+  return {
+    EmitEvent = 'ime-helper-toggle'
+  }
 end
 
 M.IME_STATE = IME_STATE

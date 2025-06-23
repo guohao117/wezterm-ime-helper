@@ -1,14 +1,15 @@
 # WezTerm IME Helper Plugin
 
-A WezTerm plugin that provides intelligent Input Method Editor (IME) switching capabilities, designed to work seamlessly with both local and remote editing sessions through OSC sequences.
+A WezTerm plugin that provides intelligent Input Method Editor (IME) switching capabilities, designed to work seamlessly with both local terminal usage and remote editing sessions.
 
 ## Features
 
 - **Cross-platform IME switching**: Supports macOS, Windows, and Linux
-- **OSC sequence support**: Works with remote sessions via escape sequences
+- **Direct function calls**: Efficient IME switching through WezTerm's action system
+- **OSC sequence support**: Compatible with remote sessions via escape sequences
 - **Neovim integration ready**: Designed to work with Neovim plugins for mode-based IME switching
-- **User variable support**: Compatible with existing WezTerm user variable workflows
 - **Command palette integration**: Easy manual IME switching through WezTerm's command palette
+- **Toast notifications**: Visual feedback when switching IME states
 - **Modular architecture**: Clean separation of concerns with proper module loading
 
 ## Installation
@@ -31,8 +32,8 @@ ime_helper.setup({
       IME = "com.apple.inputmethod.SCIM.ITABC"  -- or your preferred Chinese IME
     },
     Windows = {
-      EN = "0x0409",  -- English (US)
-      IME = "0x0804"  -- Chinese (Simplified)
+      EN = "1033",  -- English (US)
+      IME = "2052"  -- Chinese (Simplified)
     },
     Linux = {
       EN = "xkb:us::eng",
@@ -41,12 +42,46 @@ ime_helper.setup({
   }
 })
 
+-- Optional: Add key bindings for direct IME switching
+config.keys = {
+  -- Switch to English
+  {
+    key = 'e',
+    mods = 'CTRL|ALT',
+    action = ime_helper.switch_to_en()
+  },
+  -- Switch to IME  
+  {
+    key = 'i',
+    mods = 'CTRL|ALT',
+    action = ime_helper.switch_to_ime()
+  },
+  -- Toggle between EN and IME
+  {
+    key = 't',
+    mods = 'CTRL|ALT',
+    action = ime_helper.toggle()
+  }
+}
+
 return config
 ```
 
 ## Usage
 
-### Via OSC Sequences (Recommended for Neovim integration)
+### Via Key Bindings (Recommended for local use)
+
+If you've configured key bindings as shown above:
+- `Ctrl+Alt+E`: Switch to English
+- `Ctrl+Alt+I`: Switch to IME
+- `Ctrl+Alt+T`: Toggle between English and IME
+
+### Via Command Palette
+
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) to open WezTerm's command palette
+2. Type "IME" to see available switching options
+
+### Via OSC Sequences (For remote/Neovim integration)
 
 The plugin listens for WezTerm user variables that can be set via OSC sequences. Note that the variable values must be base64 encoded:
 
@@ -57,13 +92,6 @@ printf '\033]1337;SetUserVar=IME_CONTROL=RU4=\007'
 # Switch to IME (IME -> SU1F)  
 printf '\033]1337;SetUserVar=IME_CONTROL=SU1F\007'
 ```
-
-### Via Command Palette
-
-1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) to open WezTerm's command palette
-2. Type "IME" to see available switching options:
-   - "Switch to English IME" 
-   - "Switch to IME"
 
 ### Supported User Variables
 
