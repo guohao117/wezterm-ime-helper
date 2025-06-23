@@ -1,32 +1,21 @@
 # WezTerm IME Helper
 
-A comprehensive solution for intelligent Input Method Editor (IME) switching across WezTerm terminal and Neovim editor.
+A comprehensive solution for intelligent Input Method Editor (IME) switching in WezTerm terminal.
 
 ## 🎯 Overview
 
-This project provides two complementary plugins:
+This project provides a native WezTerm plugin for seamless IME switching with multiple trigger methods including key bindings, command palette, and OSC sequences.
 
-1. **WezTerm Plugin** (`plugin/`): Native WezTerm plugin for terminal-based IME switching
-2. **Neovim Plugin** (`nvim/`): Automatic English switching for all non-insert modes
-
-Together, they create a seamless experience where your IME automatically switches to English for Vim commands while preserving your input method preferences in insert mode.
+Perfect for multilingual users who need reliable IME control in terminal environments, including remote sessions.
 
 ## ✨ Features
-
-### WezTerm Plugin Features
 
 - **Cross-platform IME switching**: Supports macOS, Windows, and Linux
 - **Multiple trigger methods**: Key bindings, command palette, OSC sequences
 - **Toast notifications**: Visual feedback for IME changes
 - **Remote session support**: Works with SSH and container environments
 - **Command palette integration**: Easy manual IME switching
-
-### Neovim Plugin Features
-
-- **Auto-English in command modes**: Ensures all non-insert modes use English
-- **Non-intrusive insert mode**: Preserves user's IME choice in insert mode
-- **WezTerm integration**: Seamless communication via OSC sequences
-- **Zero configuration**: Works out of the box with sensible defaults
+- **Neovim integration**: Works with [noime.nvim](https://github.com/guohao117/noime.nvim) for automatic mode switching
 
 ## 📦 Installation
 
@@ -59,13 +48,14 @@ config.keys = {
 return config
 ```
 
-### Neovim Plugin
+### Neovim Integration
 
-Using **lazy.nvim**:
+For automatic IME switching in Neovim, install the companion plugin:
+
 ```lua
+-- Using lazy.nvim
 {
-  "guohao117/wezterm-ime-helper",
-  dir = "nvim", -- Use the nvim subdirectory
+  "guohao117/noime.nvim",
   event = "VeryLazy",
   cond = function()
     return vim.env.WEZTERM_PANE ~= nil
@@ -76,30 +66,7 @@ Using **lazy.nvim**:
 }
 ```
 
-Using **packer.nvim**:
-```lua
-use {
-  "guohao117/wezterm-ime-helper", 
-  rtp = "nvim",
-  config = function()
-    require("ime-helper").setup()
-  end
-}
-```
-
-Using **vim-plug**:
-```vim
-Plug 'guohao117/wezterm-ime-helper', {'rtp': 'nvim'}
-```
-
 ## 🚀 Usage
-
-### Basic Workflow
-
-1. **Normal/Visual/Command modes**: Automatically uses English for Vim commands
-2. **Insert mode**: Preserves whatever IME state you set through your OS
-3. **Mode transitions**: Seamlessly switches to English when leaving insert mode
-4. **Manual override**: Use commands or key bindings for temporary switches
 
 ### WezTerm Key Bindings (Local Usage)
 
@@ -113,15 +80,9 @@ If configured as shown above:
 2. Type "IME" to see available switching options
 3. Select your desired action
 
-### Neovim Commands
-
-- `:IMESwitchToEN` - Switch to English
-- `:IMESwitchToIME` - Switch to IME
-- `:IMEStatus` - Show current status
-
 ### OSC Sequences (Remote/Advanced Usage)
 
-For remote sessions or manual integration:
+For remote sessions or integration with other tools:
 
 ```bash
 # Switch to English (EN -> RU4=)
@@ -138,18 +99,6 @@ Write-Host "`e]1337;SetUserVar=IME_CONTROL=SU1F`a" -NoNewline  # Switch to IME
 ```
 
 ## ⚙️ Configuration
-
-### Neovim Plugin Configuration
-
-```lua
-require("ime-helper").setup({
-  -- Enable debug logging
-  debug = false,
-  
-  -- Enable automatic switching (disable if you want manual control only)
-  auto_switch = true,
-})
-```
 
 ### WezTerm Plugin Configuration
 
@@ -234,16 +183,10 @@ Common examples:
 ### Software Requirements
 
 - **WezTerm terminal** (latest version recommended)
-- **Neovim 0.7+** (for Neovim plugin)
 
 ## 🛠️ Troubleshooting
 
 ### Debug Mode
-
-**Neovim Plugin**:
-```lua
-require("ime-helper").setup({ debug = true })
-```
 
 **WezTerm Plugin**:
 ```lua
@@ -252,14 +195,14 @@ ime_helper.setup({ log_level = "debug" })
 
 ### Common Issues
 
-1. **IME not switching in Neovim**:
-   - Check if both WezTerm and Neovim plugins are installed
-   - Verify you're using WezTerm terminal
-   - Enable debug mode to see OSC sequences
+1. **IME not switching**:
+   - Verify your IME identifiers are correct
+   - Check that required system tools are installed (macism, im-select, etc.)
+   - Enable debug mode to see detailed logs
 
-2. **Plugin not loading**:
-   - Ensure `WEZTERM_PANE` environment variable is set (check with `:echo $WEZTERM_PANE`)
-   - Check plugin installation path
+2. **OSC sequences not working**:
+   - Ensure you're using WezTerm terminal
+   - Test sequences manually in terminal
 
 3. **Manual testing**:
    ```bash
@@ -277,25 +220,22 @@ ime_helper.setup({ log_level = "debug" })
 ## 🎯 Use Cases
 
 **Perfect for**:
-- 🌏 Multilingual developers who code in English but write comments/docs in other languages
-- ✍️ Technical writers who switch between languages
-- 🚀 Anyone who wants Vim commands to always work in English
-- 🔄 Users working in remote sessions where local IME control isn't available
+- 🌏 Multilingual terminal users who need reliable IME switching
+- ✍️ Users working in remote sessions where local IME control isn't available
+- 🚀 Developers who want programmatic IME control via OSC sequences
+- 🔄 Anyone using Neovim with the companion [noime.nvim](https://github.com/guohao117/noime.nvim) plugin
 
 ## 🎮 How It Works
 
-### Simple Workflow
-1. **Start Neovim** → Automatically switches to English
-2. **Enter insert mode** → Keeps whatever IME you've set via OS
-3. **Exit insert mode** → Automatically switches back to English
-4. **Manual switching** → Available via commands and key bindings
-
 ### Technical Details
-The Neovim plugin sends OSC 1337 sequences to WezTerm:
+The plugin receives OSC 1337 sequences with user variables:
 - `IME_CONTROL=RU4=` (EN in base64) for English
 - `IME_CONTROL=SU1F` (IME in base64) for IME
 
-The WezTerm plugin receives these sequences and performs actual IME switching using platform-specific tools.
+It then uses platform-specific tools to perform actual IME switching:
+- **macOS**: `macism` command-line tool
+- **Windows**: `im-select.exe` utility
+- **Linux**: IBus or Fcitx commands
 
 ## 🤝 Contributing
 
@@ -313,8 +253,8 @@ MIT License
 
 - Inspired by [im-select.nvim](https://github.com/keaising/im-select.nvim)
 - Built for the amazing [WezTerm](https://wezfurlong.org/wezterm/) terminal
-- Designed for [Neovim](https://neovim.io/) users who love automation
+- Companion Neovim plugin: [noime.nvim](https://github.com/guohao117/noime.nvim)
 
 ---
 
-**Experience seamless multilingual editing with intelligent IME switching! 🎉**
+**Experience seamless multilingual terminal usage with intelligent IME switching! 🎉**
