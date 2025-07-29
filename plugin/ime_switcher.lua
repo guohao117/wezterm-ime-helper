@@ -43,7 +43,7 @@ function M.switch_input_method(state, user_mapping)
   end
 
   if os_name == "macOS" then
-    local cmd = string.format('macism "%s"', ime_id)
+    local cmd = string.format('/usr/local/bin/macism "%s"', ime_id)
     local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", cmd})
     if not success then
       wezterm.log_error(string.format("[IME Switcher] macOS switch failed: %s", stderr))
@@ -78,7 +78,7 @@ function M.get_current_ime_state()
   local os_name = utils.os.detect_os()
   
   if os_name == "macOS" then
-    local success, stdout, stderr = wezterm.run_child_process({"macism"})
+    local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", "/usr/local/bin/macism"})
     if success and stdout then
       local current_ime = stdout:gsub("%s+", "")
       if current_ime:find("com.apple.keylayout") then
