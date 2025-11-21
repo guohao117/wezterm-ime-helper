@@ -1,5 +1,5 @@
-local wezterm = require('wezterm')
-local utils = require('utils')
+local wezterm = require("wezterm")
+local utils = require("utils")
 
 local M = {}
 
@@ -7,23 +7,23 @@ local M = {}
 local DEFAULT_IME_MAPPING = {
   macOS = {
     EN = "com.apple.keylayout.ABC",
-    IME = "com.apple.inputmethod.SCIM.ITABC"
+    IME = "com.apple.inputmethod.SCIM.ITABC",
   },
   Windows = {
     EN = "1033", -- English US (0x0409)
-    IME = "2052"  -- Chinese Simplified (0x0804)
+    IME = "2052", -- Chinese Simplified (0x0804)
   },
   Linux = {
     EN = "xkb:us::eng",
-    IME = "pinyin"
-  }
+    IME = "pinyin",
+  },
 }
 
 -- 跨平台输入法切换
 function M.switch_input_method(state, user_mapping)
   local os_name = utils.os.detect_os()
   local mapping = user_mapping[os_name] or DEFAULT_IME_MAPPING[os_name]
-  
+
   if not mapping then
     wezterm.log_error(string.format("[IME Switcher] Unsupported OS: %s", os_name))
     return false
@@ -44,24 +44,24 @@ function M.switch_input_method(state, user_mapping)
 
   if os_name == "macOS" then
     local cmd = string.format('/usr/local/bin/macism "%s"', ime_id)
-    local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", cmd})
+    local success, stdout, stderr = wezterm.run_child_process({ "sh", "-c", cmd })
     if not success then
       wezterm.log_error(string.format("[IME Switcher] macOS switch failed: %s", stderr))
       return false
     end
   elseif os_name == "Windows" then
-    local cmd = string.format('im-select.exe %s', ime_id)
-    local success, stdout, stderr = wezterm.run_child_process({"cmd", "/c", cmd})
+    local cmd = string.format("im-select.exe %s", ime_id)
+    local success, stdout, stderr = wezterm.run_child_process({ "cmd", "/c", cmd })
     if not success then
       wezterm.log_error(string.format("[IME Switcher] Windows switch failed: %s", stderr))
       return false
     end
   elseif os_name == "Linux" then
-    local cmd = string.format('ibus engine %s', ime_id)
-    local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", cmd})
+    local cmd = string.format("ibus engine %s", ime_id)
+    local success, stdout, stderr = wezterm.run_child_process({ "sh", "-c", cmd })
     if not success then
-      cmd = string.format('fcitx-remote -s %s', ime_id)
-      success, stdout, stderr = wezterm.run_child_process({"sh", "-c", cmd})
+      cmd = string.format("fcitx-remote -s %s", ime_id)
+      success, stdout, stderr = wezterm.run_child_process({ "sh", "-c", cmd })
       if not success then
         wezterm.log_error(string.format("[IME Switcher] Linux switch failed: %s", stderr))
         return false
@@ -69,16 +69,19 @@ function M.switch_input_method(state, user_mapping)
     end
   end
 
-  wezterm.log_info(string.format("[IME Switcher] Successfully switched to %s (%s) on %s", state, ime_id, os_name))
+  wezterm.log_info(
+    string.format("[IME Switcher] Successfully switched to %s (%s) on %s", state, ime_id, os_name)
+  )
   return true
 end
 
 -- 获取当前IME状态（如果支持）
 function M.get_current_ime_state()
   local os_name = utils.os.detect_os()
-  
+
   if os_name == "macOS" then
-    local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", "/usr/local/bin/macism"})
+    local success, stdout, stderr =
+      wezterm.run_child_process({ "sh", "-c", "/usr/local/bin/macism" })
     if success and stdout then
       local current_ime = stdout:gsub("%s+", "")
       if current_ime:find("com.apple.keylayout") then
@@ -88,7 +91,7 @@ function M.get_current_ime_state()
       end
     end
   elseif os_name == "Windows" then
-    local success, stdout, stderr = wezterm.run_child_process({"cmd", "/c", "im-select.exe"})
+    local success, stdout, stderr = wezterm.run_child_process({ "cmd", "/c", "im-select.exe" })
     if success and stdout then
       local current_ime = stdout:gsub("%s+", "")
       local current_ime_num = tonumber(current_ime)
@@ -102,7 +105,7 @@ function M.get_current_ime_state()
     end
   elseif os_name == "Linux" then
     -- 首先尝试 IBus
-    local success, stdout, stderr = wezterm.run_child_process({"sh", "-c", "ibus engine"})
+    local success, stdout, stderr = wezterm.run_child_process({ "sh", "-c", "ibus engine" })
     if success and stdout then
       local current_ime = stdout:gsub("%s+", "")
       if current_ime:find("xkb:us") or current_ime:find("eng") then
@@ -112,10 +115,14 @@ function M.get_current_ime_state()
       end
     else
       -- 如果 IBus 失败，尝试 Fcitx
-      success, stdout, stderr = wezterm.run_child_process({"sh", "-c", "fcitx-remote -n"})
+      success, stdout, stderr = wezterm.run_child_process({ "sh", "-c", "fcitx-remote -n" })
       if success and stdout then
         local current_ime = stdout:gsub("%s+", "")
-        if current_ime:find("xkb:us") or current_ime:find("eng") or current_ime == "keyboard-us" then
+        if
+          current_ime:find("xkb:us")
+          or current_ime:find("eng")
+          or current_ime == "keyboard-us"
+        then
           return "EN"
         else
           return "IME"
@@ -123,7 +130,7 @@ function M.get_current_ime_state()
       end
     end
   end
-  
+
   return nil -- 无法检测
 end
 
