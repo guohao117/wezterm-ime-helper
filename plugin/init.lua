@@ -70,28 +70,8 @@ function M.setup(opts)
     )
   end)
 
-  -- 注册命令面板增强（如果启用）
-  if config.enable_command_palette then
-    wezterm.on("augment-command-palette", function(window, pane)
-      return {
-        {
-          brief = "Switch to English IME",
-          icon = "md_keyboard",
-          action = wezterm.action.EmitEvent("ime-helper-switch-to-en"),
-        },
-        {
-          brief = "Switch to IME",
-          icon = "md_translate",
-          action = wezterm.action.EmitEvent("ime-helper-switch-to-ime"),
-        },
-        {
-          brief = "Toggle IME",
-          icon = "md_swap_horiz",
-          action = wezterm.action.EmitEvent("ime-helper-toggle"),
-        },
-      }
-    end)
-  end
+  -- 不再自动注册 augment-command-palette
+  -- 用户应该在自己的配置中调用 get_command_palette_entries() 来获取条目
 
   wezterm.log_info("[WezTerm IME Helper] Plugin setup completed")
 end
@@ -108,6 +88,28 @@ end
 
 function M.toggle()
   return wezterm.action.EmitEvent("ime-helper-toggle")
+end
+
+-- 返回用于 command palette 的条目列表
+-- 供外部配置统一管理 augment-command-palette 事件
+function M.get_command_palette_entries()
+  return {
+    {
+      brief = "Switch to English IME",
+      icon = "md_keyboard",
+      action = wezterm.action.EmitEvent("ime-helper-switch-to-en"),
+    },
+    {
+      brief = "Switch to IME",
+      icon = "md_translate",
+      action = wezterm.action.EmitEvent("ime-helper-switch-to-ime"),
+    },
+    {
+      brief = "Toggle IME",
+      icon = "md_swap_horiz",
+      action = wezterm.action.EmitEvent("ime-helper-toggle"),
+    },
+  }
 end
 
 M.IME_STATE = IME_STATE
